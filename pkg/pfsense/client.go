@@ -272,6 +272,8 @@ func NewClient(ctx context.Context, opts *Options) (*Client, error) {
 		return nil, err
 	}
 
+	registerBulkTarget(pfsense)
+
 	return pfsense, nil
 }
 
@@ -471,4 +473,11 @@ func safeSplit(s string, sep string) []string {
 	}
 
 	return strings.Split(s, sep)
+}
+
+// registerBulkTarget keeps the client for the graceful-exit flush (bulk mode).
+func registerBulkTarget(pf *Client) {
+	if BulkEnabled() {
+		pf.registerBulk()
+	}
 }

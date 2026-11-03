@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -319,6 +320,7 @@ func (pf *Client) getFirewallRules(ctx context.Context) (*FirewallRules, error) 
 	command := "$output = array();" +
 		"if (isset($config['filter']['rule']) && is_array($config['filter']['rule'])) {" +
 		"foreach ($config['filter']['rule'] as $k => $v) {" +
+		"if (!isset($v['protocol'])) { $v['protocol'] = isset($v['proto']) ? $v['proto'] : ''; };" +
 		"$v['controlID'] = $k; array_push($output, $v);" +
 		"}};" +
 		"print_r(json_encode($output));"
@@ -642,6 +644,9 @@ func (pf *Client) DeleteFirewallRule(ctx context.Context, tracker string, iface 
 }
 
 func (pf *Client) ApplyFirewallRuleChanges(ctx context.Context) error {
+	if os.Getenv("PFSenseBulkApply") == "1" {
+		return nil
+	} // BULK-APPLY PROTOTYPE: defer filter_configure to external flush
 	pf.mutexes.FirewallFilterReload.Lock()
 	defer pf.mutexes.FirewallFilterReload.Unlock()
 
